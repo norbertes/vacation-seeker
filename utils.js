@@ -5,7 +5,6 @@ module.exports.createMD5 = (str) => {
   return crypto.createHash('md5').update(str).digest('hex')
 };
 
-
 module.exports.createRequest = (url) => {
   return new Promise( (resolve, reject) => {
 
