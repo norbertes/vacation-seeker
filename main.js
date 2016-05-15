@@ -1,24 +1,39 @@
-'use strict';
+const pm2 = require('pm2');
 
-const request = require('request');
-const cheerio = require('cheerio');
-const crypto = require('crypto');
+const instances = process.env.WEB_CONCURRENCY || -1; // Set by Heroku or -1 to scale to max cpu core -1
+const maxMemory = process.env.WEB_MEMORY || 512;    // " " "
 
-const pages = [{
-    url: 'http://fly4free.pl',
-    seekTag: '.entry__title a'
-}];
+const config = {
+  script    : 'app.js',
+  name      : 'vacation-seeker',
+  exec_mode : 'cluster', // ----> https://github.com/Unitech/PM2/blob/master/ADVANCED_README.md#schema
+  instances : instances,
+  max_memory_restart : `${maxMemory}M`,   // Auto restart if process taking more than XXmo
+  env: {
+    "NODE_ENV": "production"
+  },
+};
 
-const createMD5 = (str) => crypto.createHash('md5').update(str).digest('hex');
+const lunchApp = (err) => {
+  if (err) {
+    return console.error('Error while launching applications', err.stack || err)
+  };
+  console.log('PM2 and application has been succesfully started');
 
-request(pages[0].url, (err, response, body) => {
-  const $ = cheerio.load(body);
+  // Display logs in standard output
+  pm2.launchBus(function(err, bus) {
+    console.log('[PM2] Log streaming started');
 
-  $(pages[0].seekTag).each( (i, elem) => {
-    console.log(
-      createMD5($(elem).text()),
-      $(elem).text(),
-      $(elem).attr('href')
-    );
-  })
+    bus.on('log:out', function(packet) {
+     console.log('[App:%s] %s', packet.process.name, packet.data);
+    });
+
+    bus.on('log:err', function(packet) {
+      console.error('[App:%s][Err] %s', packet.process.name, packet.data);
+    });
+  });
+};
+
+pm2.connect(function() {
+  pm2.start(config, lunchApp);
 });
