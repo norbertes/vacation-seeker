@@ -1,20 +1,37 @@
 'use strict';
 
 const bluebird = require('bluebird');
+const request = require('request');
 const cheerio = require('cheerio');
-const Slackbot = require('slackbots');
+const RtmClient = require('@slack/client').RtmClient;
+const RTM_CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS.RTM;
+const CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
 const CronJob = require('cron').CronJob;
 const mongodb = require('mongodb');
 bluebird.promisifyAll(mongodb);
 
 const utils = require('./utils');
 const config = require('./config.js');
-
 const pages = require('./services.js').pages;
-const slackbot = new Slackbot({
-  token: config.slackToken,
-  name: 'lastminuter'
-});
+
+const rtm = new RtmClient(config.slackToken || '');
+rtm.start();
+
+
+rtm.on(
+  CLIENT_EVENTS.RTM.AUTHENTICATED,
+  (rtmStartData) => {
+    console.log(`Logged in as ${rtmStartData.self.name} of team ${rtmStartData.team.name}, but not yet connected to a channel`);
+  }
+);
+
+rtm.on(
+  RTM_CLIENT_EVENTS.RTM_CONNECTION_OPENED,
+  () => rtm.sendMessage('bot is ON', config.slackChannel)
+);
+
+let dbOffers = []
+const reqOffers = [];
 
 mongodb
 .MongoClient
@@ -22,22 +39,23 @@ mongodb
 .then( (db) => {
   console.log('mongodb: connected');
 
-  const dbOffers = db.collection('offers');
-  const reqOffers = [];
+  dbOffers = db.collection('offers');
 
   new CronJob(
-    '* */3 * * * *',
-    () => fetch(),
-    null,
+    '0 */3 * * * *',
+    fetch,
+    () => console.error('CRON CRASHED!'),
     true
   );
 })
 .catch( (err) => {
-  console.log('mongodb: connection err', err);
+  console.error('mongodb: connection err', err);
 });
 
 
 function fetch() {
+  console.log(`${new Date().toISOString()} fetch started`);
+
   bluebird
   .each(pages, (page) => (
     utils
@@ -55,24 +73,31 @@ function fetch() {
     })
   ))
   .finally( () => {
-    const md5Arr = reqOffers.map( (offer) => offer.md5 );
+    const reqArr = reqOffers.map( (offer) => offer.md5 );
 
     dbOffers
-    .find({"md5": {$in: md5Arr}})
+    .find({}, {"md5": 1, _id: 0})
     .toArray()
-    .then( (dbOffers) => {
-      console.log('arr');
-      const newOffers = [];
-      reqOffers.forEach( (offer) => {
-        if (dbOffers.indexOf(offer.md5) !== -1) {
-          newOffers.push(offer)
-        }
-      });
+    .then( (collection) => {
+      const dbArr = collection.map( (pos) => pos.md5 );
+      const newOffers = reqArr.filter( (pos) => dbArr.includes(pos) );
 
-      // newOffers == should be pushed to slack
+      // NOTE: newOffers are diff between db and results
+      if (newOffers.length) {
+        console.log(`added ${newOffers.length} offers!`);
+      }
       newOffers.forEach( (offer) => {
         const msg = `${offer.title} (${offer.url})`;
-        slackbot.send(config.slackChannel, msg);
+
+        rtm.on(
+          RTM_CLIENT_EVENTS.RTM_CONNECTION_OPENED,
+          () => {
+            rtm.sendMessage(
+              msg,
+              config.slackChannel,
+              () => console.log('sent to slack')
+            );
+        });
 
         dbOffers.update(
           { md5: offer.md5 },
