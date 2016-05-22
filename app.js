@@ -39,8 +39,6 @@ mongodb
 
 
 function fetch() {
-  console.log(`${new Date().toISOString()} fetch started`);
-
   bluebird
   .each(pages, (page) => (
     utils
@@ -60,30 +58,26 @@ function fetch() {
     })
   ))
   .finally( () => {
-    console.log('Db manipulation starts');
     dbOffers
     .find({}, {"md5": 1, _id: 0})
     .toArray()
     .then( (collection) => {
       const dbMD5 = collection.map( (pos) => pos.md5 );
-      console.log(dbMD5);
       const newOffers = reqOffers.filter( (pos) => !dbMD5.includes(pos.md5) );
 
       // NOTE: newOffers are diff between db and results
       if (newOffers.length) {
-        console.log(`added ${newOffers.length} offers!`);
+        console.log(`${Date().toISOString()}: added ${newOffers.length} offers!`);
       }
+
       const Bulk = dbOffers.initializeUnorderedBulkOp();
       newOffers.forEach( (offer) => {
         const msg = `${offer.title} (${offer.url})`;
-        console.log(msg, offer.md5, offer.date);
-
         slack.send({
             text: msg,
             channel: config.slackChannel || process.env.SLACKCHANNEL,
             username: 'Vacation Seeker'
         });
-
         Bulk.insert({
           md5: offer.md5,
           title: offer.title,
