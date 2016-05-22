@@ -78,14 +78,15 @@ function fetch() {
         ReqOffers: ${reqOffers.length},
         NewOffers: ${newOffers.length}
       `);
-      
+
       const Bulk = dbOffers.initializeUnorderedBulkOp();
       newOffers.forEach( (offer) => {
         const msg = `${offer.title} (${offer.url})`;
         slack.send({
             text: msg,
             channel: config.slackChannel || process.env.SLACKCHANNEL,
-            username: 'Vacation Seeker'
+            username: 'Vacation Seeker',
+            icon_emoji: 'airplane'
         });
         Bulk.insert({
           md5: offer.md5,
