@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "Collect all offers within given selector from page",
   "main": "main.js",
+  "engines": {
+    "node": "6.0.0"
+  },
   "dependencies": {
     "bluebird": "^3.3.5",
     "cheerio": "^0.20.0",
