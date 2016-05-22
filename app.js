@@ -52,7 +52,7 @@ function fetch() {
           date: new Date(),
           md5: utils.createMD5($(elem).text()),
           title: $(elem).text(),
-          url: $(elem).attr('href').includes('http://') ?
+          url: /^https?:\/\//.test($(elem).attr('href')) ?
                $(elem).attr('href') :
                page.baseUrl + $(elem).attr('href')
         });
@@ -66,6 +66,7 @@ function fetch() {
     .toArray()
     .then( (collection) => {
       const dbMD5 = collection.map( (pos) => pos.md5 );
+      console.log(dbMD5);
       const newOffers = reqOffers.filter( (pos) => !dbMD5.includes(pos.md5) );
 
       // NOTE: newOffers are diff between db and results
