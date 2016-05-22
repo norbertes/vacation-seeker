@@ -9,7 +9,7 @@ const mongodb = require('mongodb');
 bluebird.promisifyAll(mongodb);
 
 const utils = require('./utils');
-const config = require('./config.js');
+const config = require('./config.js') || {};
 const pages = require('./services.js').pages;
 
 const slack = new Slack(config.slackHookUrl || process.env.SLACKHOOKURL);
@@ -60,6 +60,7 @@ function fetch() {
     })
   ))
   .finally( () => {
+    console.log('Db manipulation starts');
     dbOffers
     .find({}, {"md5": 1, _id: 0})
     .toArray()
