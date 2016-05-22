@@ -1,12 +1,11 @@
 const pm2 = require('pm2');
 
-const instances = process.env.WEB_CONCURRENCY || -1; // Set by Heroku or -1 to scale to max cpu core -1
+const instances = process.env.WEB_CONCURRENCY || 1; // Set by Heroku, to scale to max cpu core -1
 const maxMemory = process.env.WEB_MEMORY || 512;    // " " "
 
 const config = {
   script    : 'app.js',
   name      : 'vacation-seeker',
-  exec_mode : 'cluster', // ----> https://github.com/Unitech/PM2/blob/master/ADVANCED_README.md#schema
   instances : instances,
   max_memory_restart : `${maxMemory}M`,   // Auto restart if process taking more than XXmo
   env: {
