@@ -67,7 +67,9 @@ function fetch() {
 
       // NOTE: newOffers are diff between db and results
       if (newOffers.length) {
-        console.log(`${Date().toISOString()}: added ${newOffers.length} offers!`);
+        console.log(`
+          ${new Date().toISOString()}: added ${newOffers.length} offers!
+        `);
       }
 
       const Bulk = dbOffers.initializeUnorderedBulkOp();
