@@ -12,7 +12,7 @@ const utils = require('./utils');
 const config = require('./config.js');
 const pages = require('./services.js').pages;
 
-const slack = new Slack(config.slackHookUrl);
+const slack = new Slack(config.slackHookUrl || process.env.SLACKHOOKURL);
 
 
 let dbOffers = []
@@ -20,7 +20,7 @@ const reqOffers = [];
 
 mongodb
 .MongoClient
-.connectAsync(config.mongoUrl)
+.connectAsync(config.mongoUrl || process.env.MONGOURL)
 .then( (db) => {
   console.log('mongodb: connected');
 
@@ -78,7 +78,7 @@ function fetch() {
 
         slack.send({
             text: msg,
-            channel: config.slackChannel,
+            channel: config.slackChannel || process.env.SLACKCHANNEL,
             username: 'Vacation Seeker'
         });
 
