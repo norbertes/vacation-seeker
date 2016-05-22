@@ -16,7 +16,6 @@ const slack = new Slack(config.slackHookUrl || process.env.SLACKHOOKURL);
 
 
 let dbOffers = []
-const reqOffers = [];
 
 mongodb
 .MongoClient
@@ -39,6 +38,8 @@ mongodb
 
 
 function fetch() {
+  let reqOffers = [];
+
   bluebird
   .each(pages, (page) => (
     utils
