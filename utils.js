@@ -10,7 +10,7 @@ module.exports.createRequest = (url) => {
 
     const request = http.get(url, (response) => {
       if (response.statusCode < 200 || response.statusCode > 299) {
-         reject(new Error('Failed to load page, status code: ' + response.statusCode));
+         reject(response.statusCode);
        }
 
       const body = [];

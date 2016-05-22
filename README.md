@@ -1,10 +1,15 @@
-`node -v >= 6.0.0`
-`brew install mongodb`
+1. `node -v >= 6.0.0`
+1. `brew install mongodb`
+1. `npm install`
+1. `npm start`
 
+services to crawl with selectors are inside `services.js`
 
-config.js file:
+`config.js` file:
+```json
 module.exports = {
-  mongoUrl: 'mongodb://localhost:27017/DB_NAME',
-  slackToken: 'TOKEN',
-  slackChannel: 'CHANNEL'
+  "mongoUrl": "mongodb://<dbuser>:<dbpassword>@<server>:<port>/<db_name>",
+  "slackChannel": "SLACKCHANNEL", // with #
+  "slackHookUrl": "SLACKHOOKURL" // full url
 };
+```

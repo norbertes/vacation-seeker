@@ -25,6 +25,8 @@ mongodb
 
   dbOffers = db.collection('offers');
 
+  fetch();
+
   new CronJob(
     '0 */3 * * * *',
     fetch,
@@ -40,6 +42,7 @@ mongodb
 function fetch() {
   let reqOffers = [];
 
+  // FETCH PAGES AND OFFERS PART
   bluebird
   .each(pages, (page) => (
     utils
@@ -57,22 +60,25 @@ function fetch() {
         });
       });
     })
+    .catch( (err) => {
+      console.log(`${page.url} got error ${err}`);
+    })
   ))
   .finally( () => {
+    // FINDING NEW OFFERS PART
     dbOffers
     .find({}, {"md5": 1, _id: 0})
     .toArray()
     .then( (collection) => {
       const dbMD5 = collection.map( (pos) => pos.md5 );
-      const newOffers = reqOffers.filter( (pos) => !dbMD5.includes(pos.md5) );
-
       // NOTE: newOffers are diff between db and results
-      if (newOffers.length) {
-        console.log(`
-          ${new Date().toISOString()}: added ${newOffers.length} offers!
-        `);
-      }
-
+      const newOffers = reqOffers.filter( (pos) => !dbMD5.includes(pos.md5) );
+      console.log(`
+        after db fetch.
+        ReqOffers: ${reqOffers.length},
+        NewOffers: ${newOffers.length}
+      `);
+      
       const Bulk = dbOffers.initializeUnorderedBulkOp();
       newOffers.forEach( (offer) => {
         const msg = `${offer.title} (${offer.url})`;
