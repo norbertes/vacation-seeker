@@ -10,4 +10,8 @@ module.exports.pages = [{
   url: 'http://loter.pl/?q=last-minute',
   baseUrl: 'http://loter.pl',
   seekTag: '.views-field-title a'
+}, {
+  url: 'http://www.wakacyjnipiraci.pl/loty',
+  baseUrl: 'http://www.wakacyjnipiraci.pl',
+  seekTag: '.post-hl-lnk'
 }];

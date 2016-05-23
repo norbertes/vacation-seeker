@@ -53,7 +53,7 @@ function fetch() {
         reqOffers.push({
           date: new Date(),
           md5: utils.createMD5($(elem).text()),
-          title: $(elem).text(),
+          title: $(elem).text().trim(),
           url: /^https?:\/\//.test($(elem).attr('href')) ?
                $(elem).attr('href') :
                page.baseUrl + $(elem).attr('href')
