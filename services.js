@@ -13,5 +13,5 @@ module.exports.pages = [{
 }, {
   url: 'http://www.wakacyjnipiraci.pl/loty',
   baseUrl: 'http://www.wakacyjnipiraci.pl',
-  seekTag: '.post-hl-lnk'
+  seekTag: '.post-preview a'
 }];
